@@ -2,27 +2,32 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func main() {
-	fmt.Printf("Hello World\n")
+func fetchWeaponIDSet() ([]string, error) {
+	var idSet []string
 	document, err := goquery.NewDocument("https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1")
 	if err != nil {
-		fmt.Println("get html NG")
+		return nil, err
 	}
-
 	result := document.Find("a.db-table__txt--detail_link")
 	result.Each(func(index int, s *goquery.Selection) {
 		attr, _ := s.Attr("href")
-		fmt.Printf("(%%#v) %#v\n", attr)
-		// children := s.Children()
-		// children.Each(func(index int, c *goquery.Selection) {
-		// 	fmt.Println("c:", c.Nodes[0])
-		// 	c.Find("td").Each(func(index int, cc *goquery.Selection) {
-		// 		fmt.Println("cc:", cc)
-		// 	})
-		// })
+		id := filepath.Base(attr)
+		idSet = append(idSet, id)
 	})
+	return idSet, nil
+}
+
+func main() {
+	fmt.Printf("Hello World\n")
+	idSet, err := fetchWeaponIDSet()
+	if err != nil {
+		os.Exit(1)
+	}
+	fmt.Printf("(%%#v) %#v\n", idSet)
 }
