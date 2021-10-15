@@ -9,7 +9,12 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/kelseyhightower/envconfig"
 )
+
+type Env struct {
+	DodochaUsingSystem string
+}
 
 // WeaponParameter...
 type WeaponParameter struct {
@@ -139,12 +144,19 @@ func findBonuses(document *goquery.Document) (*WeaponBonuses, error) {
 }
 
 func main() {
+	var env Env
+	envconfig.Process("", &env)
+	if env.DodochaUsingSystem == "local" {
+		HandleRequest(context.Background())
+	} else {
+		lambda.Start(HandleRequest)
+	}
 	// _, err := fetchWeaponIDSet()
 	// if err != nil {
 	// 	os.Exit(1)
 	// }
 	// fmt.Printf("(%%#v) %#v\n", idSet)
-	lambda.Start(HandleRequest)
+
 }
 
 func HandleRequest(ctx context.Context) (*string, error) {
