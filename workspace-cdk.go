@@ -4,7 +4,6 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk"
 	"github.com/aws/aws-cdk-go/awscdk/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/awslambdago"
-	"github.com/aws/aws-cdk-go/awscdk/awssns"
 	"github.com/aws/constructs-go/constructs/v3"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -21,18 +20,25 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
 	// The code that defines your stack goes here
-
-	// as an example, here's how you would define an AWS SNS topic:
-	awssns.NewTopic(stack, jsii.String("MyTopic"), &awssns.TopicProps{
-		DisplayName: jsii.String("MyCoolTopic"),
-	})
-	awslambdago.NewGoFunction(stack, jsii.String("chigyu"), &awslambdago.GoFunctionProps{
-		Runtime:      awslambda.Runtime_GO_1_X(),
-		Entry:        jsii.String("aiueo/cmd/main.go"),
-		FunctionName: jsii.String("chigyu"),
-	})
-
+	addedScraper(stack)
+	addedContentFetcher(stack)
 	return stack
+}
+
+func addedScraper(stack awscdk.Stack) {
+	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-scraper"), &awslambdago.GoFunctionProps{
+		Runtime:      awslambda.Runtime_GO_1_X(),
+		Entry:        jsii.String("ffxiv-scraper/main.go"),
+		FunctionName: jsii.String("ffxiv-scraper"),
+	})
+}
+
+func addedContentFetcher(stack awscdk.Stack) {
+	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-content-fetcher"), &awslambdago.GoFunctionProps{
+		Runtime:      awslambda.Runtime_GO_1_X(),
+		Entry:        jsii.String("ffxiv-content-fetcher/main.go"),
+		FunctionName: jsii.String("ffxiv-content-fetcher"),
+	})
 }
 
 func main() {

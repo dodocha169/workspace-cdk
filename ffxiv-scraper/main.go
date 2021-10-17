@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -37,21 +36,6 @@ type WeaponBonuses struct {
 	PIE int
 	SKS int
 	SPS int
-}
-
-func fetchWeaponIDSet() ([]string, error) {
-	var idSet []string
-	document, err := goquery.NewDocument("https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1")
-	if err != nil {
-		return nil, err
-	}
-	result := document.Find("a.db-table__txt--detail_link")
-	result.Each(func(index int, s *goquery.Selection) {
-		attr, _ := s.Attr("href")
-		id := filepath.Base(attr)
-		idSet = append(idSet, id)
-	})
-	return idSet, nil
 }
 
 func fetchWeapon(id string) (*WeaponParameter, error) {
@@ -151,11 +135,6 @@ func main() {
 	} else {
 		lambda.Start(HandleRequest)
 	}
-	// _, err := fetchWeaponIDSet()
-	// if err != nil {
-	// 	os.Exit(1)
-	// }
-	// fmt.Printf("(%%#v) %#v\n", idSet)
 
 }
 
@@ -165,8 +144,7 @@ func HandleRequest(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 	fmt.Printf("(%%#v) %#v\n", w)
+	fmt.Printf("(%%#v) %#v\n", w.Bonuses)
 	res := "success"
 	return &res, nil
 }
-
-// https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/26763e1f7d9/
