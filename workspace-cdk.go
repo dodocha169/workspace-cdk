@@ -22,6 +22,7 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	// The code that defines your stack goes here
 	addedScraper(stack)
 	addedContentFetcher(stack)
+	addedPageFetcher(stack)
 	return stack
 }
 
@@ -38,6 +39,14 @@ func addedContentFetcher(stack awscdk.Stack) {
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-content-fetcher/main.go"),
 		FunctionName: jsii.String("ffxiv-content-fetcher"),
+	})
+}
+
+func addedPageFetcher(stack awscdk.Stack) {
+	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-page-fetcher"), &awslambdago.GoFunctionProps{
+		Runtime:      awslambda.Runtime_GO_1_X(),
+		Entry:        jsii.String("ffxiv-page-fetcher/main.go"),
+		FunctionName: jsii.String("ffxiv-page-fetcher"),
 	})
 }
 
