@@ -32,6 +32,14 @@ func fetchWeaponPageCount() (int, error) {
 	return count, nil
 }
 
+func newURLSet(count int) []string {
+	var set []string
+	for i := 1; i <= count; i++ {
+		set = append(set, "https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1&page="+fmt.Sprint(i))
+	}
+	return set
+}
+
 func findTagValue(document *goquery.Document, findWord string) string {
 	result := document.Find(findWord)
 	raw := result.Nodes[0].FirstChild.Data
@@ -58,11 +66,11 @@ func main() {
 }
 
 func HandleRequest(ctx context.Context) (*string, error) {
-	w, err := fetchWeaponPageCount()
+	c, err := fetchWeaponPageCount()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("(%%#v) %#v\n", w)
+	fmt.Printf("(%%#v) %#v\n", newURLSet(c))
 	res := "success"
 	return &res, nil
 }
