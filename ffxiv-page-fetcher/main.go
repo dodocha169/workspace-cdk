@@ -65,12 +65,10 @@ func main() {
 
 }
 
-func HandleRequest(ctx context.Context) (*string, error) {
+func HandleRequest(ctx context.Context) ([]string, error) {
 	c, err := fetchWeaponPageCount()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("(%%#v) %#v\n", newURLSet(c))
-	res := "success"
-	return &res, nil
+	return newURLSet(c), nil
 }
