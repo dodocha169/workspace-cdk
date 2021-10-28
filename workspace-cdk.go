@@ -4,6 +4,8 @@ import (
 	"github.com/aws/aws-cdk-go/awscdk"
 	"github.com/aws/aws-cdk-go/awscdk/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/awslambdago"
+	"github.com/aws/aws-cdk-go/awscdk/awsstepfunctions"
+	"github.com/aws/aws-cdk-go/awscdk/awsstepfunctionstasks"
 	"github.com/aws/constructs-go/constructs/v3"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -22,7 +24,8 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	// The code that defines your stack goes here
 	addedScraper(stack)
 	addedContentFetcher(stack)
-	addedPageFetcher(stack)
+	pageFetcher := addedPageFetcher(stack)
+	addedStateMachine(stack, pageFetcher)
 	return stack
 }
 
@@ -42,11 +45,27 @@ func addedContentFetcher(stack awscdk.Stack) {
 	})
 }
 
-func addedPageFetcher(stack awscdk.Stack) {
-	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-page-fetcher"), &awslambdago.GoFunctionProps{
+func addedPageFetcher(stack awscdk.Stack) awslambdago.GoFunction {
+	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-page-fetcher"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-page-fetcher/main.go"),
 		FunctionName: jsii.String("ffxiv-page-fetcher"),
+	})
+}
+
+func addedStateMachine(stack awscdk.Stack, function awslambdago.GoFunction) {
+	awsstepfunctions.NewStateMachine(stack, jsii.String("ffxiv-content-flow"), &awsstepfunctions.StateMachineProps{
+		Definition: awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("chigyu"), &awsstepfunctionstasks.LambdaInvokeProps{
+			LambdaFunction: function,
+		}).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("chigyu2"), &awsstepfunctionstasks.LambdaInvokeProps{
+			LambdaFunction: function,
+		})),
+		Logs:             nil,
+		Role:             nil,
+		StateMachineName: jsii.String("ffxiv-content-flow"),
+		StateMachineType: awsstepfunctions.StateMachineType_STANDARD,
+		Timeout:          nil,
+		TracingEnabled:   nil,
 	})
 }
 

@@ -52,11 +52,6 @@ func main() {
 	} else {
 		lambda.Start(HandleRequest)
 	}
-	// _, err := fetchWeaponIDSet()
-	// if err != nil {
-	// 	os.Exit(1)
-	// }
-	// fmt.Printf("(%%#v) %#v\n", idSet)
 
 }
 
@@ -66,8 +61,6 @@ func HandleRequest(ctx context.Context) (*string, error) {
 		return nil, err
 	}
 	fmt.Printf("(%%#v) %#v\n", w)
-	res := "success"
+	res := "{}"
 	return &res, nil
 }
-
-// https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/26763e1f7d9/

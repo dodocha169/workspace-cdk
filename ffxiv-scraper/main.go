@@ -138,13 +138,12 @@ func main() {
 
 }
 
-func HandleRequest(ctx context.Context) (*string, error) {
+func HandleRequest(ctx context.Context) (*WeaponParameter, error) {
 	w, err := fetchWeapon("c3ea45492b1")
 	if err != nil {
 		return nil, err
 	}
 	fmt.Printf("(%%#v) %#v\n", w)
 	fmt.Printf("(%%#v) %#v\n", w.Bonuses)
-	res := "success"
-	return &res, nil
+	return w, nil
 }
