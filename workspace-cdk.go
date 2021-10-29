@@ -22,23 +22,23 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
 	// The code that defines your stack goes here
-	addedScraper(stack)
-	addedContentFetcher(stack)
+	scraper := addedScraper(stack)
+	contentFetcher := addedContentFetcher(stack)
 	pageFetcher := addedPageFetcher(stack)
-	addedStateMachine(stack, pageFetcher)
+	addedStateMachine(stack, pageFetcher, contentFetcher, scraper)
 	return stack
 }
 
-func addedScraper(stack awscdk.Stack) {
-	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-scraper"), &awslambdago.GoFunctionProps{
+func addedScraper(stack awscdk.Stack) awslambdago.GoFunction {
+	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-scraper"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-scraper/main.go"),
 		FunctionName: jsii.String("ffxiv-scraper"),
 	})
 }
 
-func addedContentFetcher(stack awscdk.Stack) {
-	awslambdago.NewGoFunction(stack, jsii.String("ffxiv-content-fetcher"), &awslambdago.GoFunctionProps{
+func addedContentFetcher(stack awscdk.Stack) awslambdago.GoFunction {
+	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-content-fetcher"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-content-fetcher/main.go"),
 		FunctionName: jsii.String("ffxiv-content-fetcher"),
@@ -53,12 +53,14 @@ func addedPageFetcher(stack awscdk.Stack) awslambdago.GoFunction {
 	})
 }
 
-func addedStateMachine(stack awscdk.Stack, function awslambdago.GoFunction) {
+func addedStateMachine(stack awscdk.Stack, pageFetcher awslambdago.GoFunction, contentFetcher awslambdago.GoFunction, scraper awslambdago.GoFunction) {
 	awsstepfunctions.NewStateMachine(stack, jsii.String("ffxiv-content-flow"), &awsstepfunctions.StateMachineProps{
-		Definition: awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("chigyu"), &awsstepfunctionstasks.LambdaInvokeProps{
-			LambdaFunction: function,
-		}).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("chigyu2"), &awsstepfunctionstasks.LambdaInvokeProps{
-			LambdaFunction: function,
+		Definition: awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("page-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
+			LambdaFunction: pageFetcher,
+		}).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("content-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
+			LambdaFunction: contentFetcher,
+		})).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("scraper"), &awsstepfunctionstasks.LambdaInvokeProps{
+			LambdaFunction: scraper,
 		})),
 		Logs:             nil,
 		Role:             nil,
@@ -77,6 +79,7 @@ func main() {
 			Env: env(),
 		},
 	})
+	awscdk.Tags_Of(app).Add(jsii.String("system"), jsii.String("ffxiv"), nil)
 	app.Synth(nil)
 }
 
