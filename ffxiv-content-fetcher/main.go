@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -14,10 +13,14 @@ import (
 type Env struct {
 	DodochaUsingSystem string
 }
+type Request struct {
+	ID     string   `json:"id"`
+	URLSet []string `json:"url_set"`
+}
 
-func fetchWeaponIDSet() ([]string, error) {
+func fetchWeaponIDSet(URL string) ([]string, error) {
 	var idSet []string
-	document, err := goquery.NewDocument("https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1")
+	document, err := goquery.NewDocument(URL)
 	if err != nil {
 		return nil, err
 	}
@@ -48,19 +51,28 @@ func main() {
 	var env Env
 	envconfig.Process("", &env)
 	if env.DodochaUsingSystem == "local" {
-		HandleRequest(context.Background())
+		HandleRequest(
+			nil,
+		)
 	} else {
 		lambda.Start(HandleRequest)
 	}
 
 }
 
-func HandleRequest(ctx context.Context) (*string, error) {
-	w, err := fetchWeaponIDSet()
-	if err != nil {
-		return nil, err
+type Event struct {
+	Payload *Request `json:"Payload"`
+}
+
+func HandleRequest(e *Event) (*string, error) {
+	fmt.Printf("(%%#v) %#v\n", e.Payload)
+	for _, URL := range e.Payload.URLSet {
+		w, err := fetchWeaponIDSet(URL)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("(%%#v) %#v\n", w)
 	}
-	fmt.Printf("(%%#v) %#v\n", w)
 	res := "{}"
 	return &res, nil
 }

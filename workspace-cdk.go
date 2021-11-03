@@ -38,10 +38,12 @@ func addedScraper(stack awscdk.Stack) awslambdago.GoFunction {
 }
 
 func addedContentFetcher(stack awscdk.Stack) awslambdago.GoFunction {
+	timeout := 5.0
 	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-content-fetcher"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-content-fetcher/main.go"),
 		FunctionName: jsii.String("ffxiv-content-fetcher"),
+		Timeout:      awscdk.Duration_Minutes(&timeout),
 	})
 }
 

@@ -15,6 +15,11 @@ type Env struct {
 	DodochaUsingSystem string
 }
 
+type Response struct {
+	ID     string   `json:"id"`
+	URLSet []string `json:"url_set"`
+}
+
 func fetchWeaponPageCount() (int, error) {
 	document, err := goquery.NewDocument("https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1")
 	if err != nil {
@@ -65,10 +70,14 @@ func main() {
 
 }
 
-func HandleRequest(ctx context.Context) ([]string, error) {
+func HandleRequest(ctx context.Context) (*Response, error) {
 	c, err := fetchWeaponPageCount()
 	if err != nil {
 		return nil, err
 	}
-	return newURLSet(c), nil
+	return &Response{
+		ID:     "aaaaa",
+		URLSet: newURLSet(c),
+	}, nil
+
 }
