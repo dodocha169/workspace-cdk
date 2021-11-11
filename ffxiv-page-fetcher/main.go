@@ -16,8 +16,8 @@ type Env struct {
 }
 
 type Response struct {
-	ID     string   `json:"id"`
-	URLSet []string `json:"url_set"`
+	ID    string  `json:"id"`
+	Pages []*Page `json:"pages"`
 }
 
 func fetchWeaponPageCount() (int, error) {
@@ -37,10 +37,17 @@ func fetchWeaponPageCount() (int, error) {
 	return count, nil
 }
 
-func newURLSet(count int) []string {
-	var set []string
+type Page struct {
+	URL string `json:"url"`
+}
+
+func newURLSet(count int) []*Page {
+	var set []*Page
 	for i := 1; i <= count; i++ {
-		set = append(set, "https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1&page="+fmt.Sprint(i))
+		u := "https://jp.finalfantasyxiv.com/lodestone/playguide/db/item/?category2=1&page=" + fmt.Sprint(i)
+		set = append(set, &Page{
+			URL: u,
+		})
 	}
 	return set
 }
@@ -76,8 +83,8 @@ func HandleRequest(ctx context.Context) (*Response, error) {
 		return nil, err
 	}
 	return &Response{
-		ID:     "aaaaa",
-		URLSet: newURLSet(c),
+		ID:    "aaaaa",
+		Pages: newURLSet(c)[:2],
 	}, nil
 
 }

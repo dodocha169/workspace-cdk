@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -131,14 +130,25 @@ func main() {
 	var env Env
 	envconfig.Process("", &env)
 	if env.DodochaUsingSystem == "local" {
-		HandleRequest(context.Background())
+		HandleRequest(
+			nil,
+		)
 	} else {
 		lambda.Start(HandleRequest)
 	}
 
 }
 
-func HandleRequest(ctx context.Context) (*WeaponParameter, error) {
+type Event struct {
+	Payload *WeaponIDSet `json:"Payload"`
+}
+
+type WeaponIDSet struct {
+	IDSet []string `json:"id_set"`
+}
+
+func HandleRequest(e *Event) (*WeaponParameter, error) {
+	fmt.Printf("(%%#v) %#v\n", e)
 	w, err := fetchWeapon("c3ea45492b1")
 	if err != nil {
 		return nil, err

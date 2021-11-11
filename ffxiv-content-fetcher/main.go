@@ -13,13 +13,15 @@ import (
 type Env struct {
 	DodochaUsingSystem string
 }
-type Request struct {
-	ID     string   `json:"id"`
-	URLSet []string `json:"url_set"`
+
+type WeaponIDSet struct {
+	IDSet []string `json:"id_set"`
 }
 
-func fetchWeaponIDSet(URL string) ([]string, error) {
-	var idSet []string
+func fetchWeaponIDSet(URL string) (*WeaponIDSet, error) {
+	var idSet *WeaponIDSet = &WeaponIDSet{
+		IDSet: []string{},
+	}
 	document, err := goquery.NewDocument(URL)
 	if err != nil {
 		return nil, err
@@ -28,7 +30,7 @@ func fetchWeaponIDSet(URL string) ([]string, error) {
 	result.Each(func(index int, s *goquery.Selection) {
 		attr, _ := s.Attr("href")
 		id := filepath.Base(attr)
-		idSet = append(idSet, id)
+		idSet.IDSet = append(idSet.IDSet, id)
 	})
 	return idSet, nil
 }
@@ -61,18 +63,19 @@ func main() {
 }
 
 type Event struct {
-	Payload *Request `json:"Payload"`
+	URL string `json:"url"`
 }
 
-func HandleRequest(e *Event) (*string, error) {
-	fmt.Printf("(%%#v) %#v\n", e.Payload)
-	for _, URL := range e.Payload.URLSet {
-		w, err := fetchWeaponIDSet(URL)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Printf("(%%#v) %#v\n", w)
+// type Page struct {
+// 	URL string `json:"url"`
+// }
+
+func HandleRequest(e *Event) (*WeaponIDSet, error) {
+	fmt.Printf("(%%#v) %#v\n", e)
+	w, err := fetchWeaponIDSet(e.URL)
+	if err != nil {
+		return nil, err
 	}
-	res := "{}"
-	return &res, nil
+	fmt.Printf("(%%#v) %#v\n", w)
+	return w, nil
 }
