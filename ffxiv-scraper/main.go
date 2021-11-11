@@ -149,11 +149,13 @@ type WeaponIDSet struct {
 
 func HandleRequest(e *Event) (*WeaponParameter, error) {
 	fmt.Printf("(%%#v) %#v\n", e)
-	w, err := fetchWeapon("c3ea45492b1")
-	if err != nil {
-		return nil, err
+	for _, id := range e.Payload.IDSet {
+		w, err := fetchWeapon(id)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Printf("(%%#v) %#v\n", w)
+		fmt.Printf("(%%#v) %#v\n", w.Bonuses)
 	}
-	fmt.Printf("(%%#v) %#v\n", w)
-	fmt.Printf("(%%#v) %#v\n", w.Bonuses)
-	return w, nil
+	return nil, nil
 }

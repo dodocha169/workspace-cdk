@@ -30,10 +30,12 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 }
 
 func addedScraper(stack awscdk.Stack) awslambdago.GoFunction {
+	timeout := 10.0
 	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-scraper"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-scraper/main.go"),
 		FunctionName: jsii.String("ffxiv-scraper"),
+		Timeout:      awscdk.Duration_Minutes(&timeout),
 	})
 }
 
@@ -48,10 +50,12 @@ func addedContentFetcher(stack awscdk.Stack) awslambdago.GoFunction {
 }
 
 func addedPageFetcher(stack awscdk.Stack) awslambdago.GoFunction {
+	timeout := 2.0
 	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-page-fetcher"), &awslambdago.GoFunctionProps{
 		Runtime:      awslambda.Runtime_GO_1_X(),
 		Entry:        jsii.String("ffxiv-page-fetcher/main.go"),
 		FunctionName: jsii.String("ffxiv-page-fetcher"),
+		Timeout:      awscdk.Duration_Minutes(&timeout),
 	})
 }
 
