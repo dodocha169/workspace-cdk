@@ -60,14 +60,32 @@ func addedPageFetcher(stack awscdk.Stack) awslambdago.GoFunction {
 }
 
 func addedStateMachine(stack awscdk.Stack, pageFetcher awslambdago.GoFunction, contentFetcher awslambdago.GoFunction, scraper awslambdago.GoFunction) {
+	loop := awsstepfunctions.NewMap(stack, jsii.String("loop"), &awsstepfunctions.MapProps{
+		Comment:        nil,
+		InputPath:      nil,
+		ItemsPath:      jsii.String("$.Payload.pages"),
+		MaxConcurrency: nil,
+		OutputPath:     nil,
+		Parameters:     nil,
+		ResultPath:     nil,
+		ResultSelector: nil,
+	})
+	cf := awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("content-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
+		LambdaFunction: contentFetcher,
+	})
+	sc := awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("scraper"), &awsstepfunctionstasks.LambdaInvokeProps{
+		LambdaFunction: scraper,
+	})
+	loop.Iterator(cf.Next(sc))
 	awsstepfunctions.NewStateMachine(stack, jsii.String("ffxiv-content-flow"), &awsstepfunctions.StateMachineProps{
 		Definition: awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("page-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
 			LambdaFunction: pageFetcher,
-		}).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("content-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
-			LambdaFunction: contentFetcher,
-		})).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("scraper"), &awsstepfunctionstasks.LambdaInvokeProps{
-			LambdaFunction: scraper,
-		})),
+		}).Next(loop),
+		// .Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("content-fetcher"), &awsstepfunctionstasks.LambdaInvokeProps{
+		// 	LambdaFunction: contentFetcher,
+		// })).Next(awsstepfunctionstasks.NewLambdaInvoke(stack, jsii.String("scraper"), &awsstepfunctionstasks.LambdaInvokeProps{
+		// 	LambdaFunction: scraper,
+		// })),
 		Logs:             nil,
 		Role:             nil,
 		StateMachineName: jsii.String("ffxiv-content-flow"),
