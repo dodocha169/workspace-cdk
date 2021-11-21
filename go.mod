@@ -9,6 +9,7 @@ require (
 	github.com/aws/aws-lambda-go v1.27.0 // indirect
 	github.com/aws/constructs-go/constructs/v3 v3.3.99
 	github.com/aws/jsii-runtime-go v1.34.0
+	github.com/guregu/dynamo v1.11.0
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/stretchr/testify v1.7.0
 

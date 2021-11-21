@@ -159,36 +159,40 @@ func HandleRequest(e *Event) (*WeaponParameter, error) {
 		}
 		fmt.Printf("(%%#v) %#v\n", w)
 		fmt.Printf("(%%#v) %#v\n", w.Bonuses)
-		writeWeapon(w)
+		// writeWeapon(w)
 	}
 	return nil, nil
 }
 
-func writeWeapon(param *WeaponParameter) {
+func readWeapon(name string) *WeaponParameter {
 	sess := session.Must(session.NewSession())
 	db := dynamo.New(sess, &aws.Config{Region: aws.String("ap-northeast-1")})
 	table := db.Table("FFXIVWeapon")
-	w := WeaponForDDB{
-		Name:      param.Name,
-		Category:  param.Category,
-		ItemLevel: param.ItemLevel,
-		STR:       param.Bonuses.STR,
-		DEX:       param.Bonuses.DEX,
-		MND:       param.Bonuses.MND,
-		INT:       param.Bonuses.INT,
-		VIT:       param.Bonuses.VIT,
-		CRI:       param.Bonuses.CRI,
-		DET:       param.Bonuses.DET,
-		DH:        param.Bonuses.DH,
-		TEN:       param.Bonuses.TEN,
-		PIE:       param.Bonuses.PIE,
-		SKS:       param.Bonuses.SKS,
-		SPS:       param.Bonuses.SPS,
-	}
-	err := table.Put(w).Run()
+	var item *WeaponForDDB
+	err := table.Get("name", name).One(&item)
 	if err != nil {
-		fmt.Printf("(%%#v) %#v\n", err.Error())
+		return nil
 	}
+	w := &WeaponParameter{
+		Name:      item.Name,
+		Category:  item.Category,
+		ItemLevel: item.ItemLevel,
+		Bonuses: &WeaponBonuses{
+			STR: item.STR,
+			DEX: item.DEX,
+			MND: item.MND,
+			INT: item.INT,
+			VIT: item.VIT,
+			CRI: item.CRI,
+			DET: item.DET,
+			DH:  item.DH,
+			TEN: item.TEN,
+			PIE: item.PIE,
+			SKS: item.SKS,
+			SPS: item.SPS,
+		},
+	}
+	return w
 }
 
 type WeaponForDDB struct {

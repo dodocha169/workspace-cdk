@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk"
+	"github.com/aws/aws-cdk-go/awscdk/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/awslambdago"
 	"github.com/aws/aws-cdk-go/awscdk/awsstepfunctions"
@@ -25,7 +26,10 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	scraper := addedScraper(stack)
 	contentFetcher := addedContentFetcher(stack)
 	pageFetcher := addedPageFetcher(stack)
+	_ = addedWeaponReader(stack)
 	addedStateMachine(stack, pageFetcher, contentFetcher, scraper)
+	weaponTable := addedDynamoDBWeaponTable(stack)
+	weaponTable.GrantFullAccess(scraper)
 	return stack
 }
 
@@ -59,6 +63,43 @@ func addedPageFetcher(stack awscdk.Stack) awslambdago.GoFunction {
 	})
 }
 
+func addedWeaponReader(stack awscdk.Stack) awslambdago.GoFunction {
+	timeout := 2.0
+	return awslambdago.NewGoFunction(stack, jsii.String("ffxiv-weapon-reader"), &awslambdago.GoFunctionProps{
+		Runtime:      awslambda.Runtime_GO_1_X(),
+		Entry:        jsii.String("ffxiv-weapon-reader/main.go"),
+		FunctionName: jsii.String("ffxiv-weapon-reader"),
+		Timeout:      awscdk.Duration_Minutes(&timeout),
+	})
+}
+
+func addedDynamoDBWeaponTable(stack awscdk.Stack) awsdynamodb.Table {
+	return awsdynamodb.NewTable(stack, jsii.String("ffxiv-weapon-table"), &awsdynamodb.TableProps{
+		PartitionKey: &awsdynamodb.Attribute{
+			Name: jsii.String("name"),
+			Type: awsdynamodb.AttributeType_STRING,
+		},
+		// SortKey: &awsdynamodb.Attribute{
+		// 	Name: nil,
+		// 	Type: "",
+		// },
+		BillingMode:                "",
+		ContributorInsightsEnabled: nil,
+		Encryption:                 "",
+		EncryptionKey:              nil,
+		PointInTimeRecovery:        nil,
+		ReadCapacity:               nil,
+		RemovalPolicy:              "",
+		ReplicationRegions:         nil,
+		ReplicationTimeout:         nil,
+		ServerSideEncryption:       nil,
+		Stream:                     "",
+		TimeToLiveAttribute:        nil,
+		WriteCapacity:              nil,
+		KinesisStream:              nil,
+		TableName:                  jsii.String("FFXIVWeapon"),
+	})
+}
 func addedStateMachine(stack awscdk.Stack, pageFetcher awslambdago.GoFunction, contentFetcher awslambdago.GoFunction, scraper awslambdago.GoFunction) {
 	loop := awsstepfunctions.NewMap(stack, jsii.String("loop"), &awsstepfunctions.MapProps{
 		Comment:        nil,
