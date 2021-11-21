@@ -26,10 +26,11 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	scraper := addedScraper(stack)
 	contentFetcher := addedContentFetcher(stack)
 	pageFetcher := addedPageFetcher(stack)
-	_ = addedWeaponReader(stack)
+	weaponReader := addedWeaponReader(stack)
 	addedStateMachine(stack, pageFetcher, contentFetcher, scraper)
 	weaponTable := addedDynamoDBWeaponTable(stack)
 	weaponTable.GrantFullAccess(scraper)
+	weaponTable.GrantFullAccess(weaponReader)
 	return stack
 }
 

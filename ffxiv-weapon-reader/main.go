@@ -19,10 +19,10 @@ type Env struct {
 
 // WeaponParameter...
 type WeaponParameter struct {
-	Name      string
-	Category  string
-	ItemLevel int
-	Bonuses   *WeaponBonuses
+	Name      string         `json:"name"`
+	Category  string         `json:"cagegory"`
+	ItemLevel int            `json:"itemLevel"`
+	Bonuses   *WeaponBonuses `json:"bonuses"`
 }
 
 type WeaponBonuses struct {
@@ -143,7 +143,7 @@ func main() {
 }
 
 type Event struct {
-	Payload *WeaponIDSet `json:"Payload"`
+	Payload string `json:"Payload"`
 }
 
 type WeaponIDSet struct {
@@ -152,26 +152,18 @@ type WeaponIDSet struct {
 
 func HandleRequest(e *Event) (*WeaponParameter, error) {
 	fmt.Printf("(%%#v) %#v\n", e)
-	for _, id := range e.Payload.IDSet {
-		w, err := fetchWeapon(id)
-		if err != nil {
-			return nil, err
-		}
-		fmt.Printf("(%%#v) %#v\n", w)
-		fmt.Printf("(%%#v) %#v\n", w.Bonuses)
-		// writeWeapon(w)
-	}
-	return nil, nil
+	w, err := readWeapon(e.Payload)
+	return w, err
 }
 
-func readWeapon(name string) *WeaponParameter {
+func readWeapon(name string) (*WeaponParameter, error) {
 	sess := session.Must(session.NewSession())
 	db := dynamo.New(sess, &aws.Config{Region: aws.String("ap-northeast-1")})
 	table := db.Table("FFXIVWeapon")
 	var item *WeaponForDDB
 	err := table.Get("name", name).One(&item)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	w := &WeaponParameter{
 		Name:      item.Name,
@@ -192,7 +184,7 @@ func readWeapon(name string) *WeaponParameter {
 			SPS: item.SPS,
 		},
 	}
-	return w
+	return w, nil
 }
 
 type WeaponForDDB struct {
