@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -150,10 +152,18 @@ type WeaponIDSet struct {
 	IDSet []string `json:"id_set"`
 }
 
-func HandleRequest(e *Event) (*WeaponParameter, error) {
+func HandleRequest(e interface{}) (*events.APIGatewayProxyResponse, error) {
 	fmt.Printf("(%%#v) %#v\n", e)
-	w, err := readWeapon(e.Payload)
-	return w, err
+	w, err := readWeapon("エクサークソードRE")
+	bytes, err := json.Marshal(w)
+	if err != nil {
+		return nil, err
+	}
+	return &events.APIGatewayProxyResponse{
+		StatusCode:      200,
+		Body:            string(bytes),
+		IsBase64Encoded: false,
+	}, nil
 }
 
 func readWeapon(name string) (*WeaponParameter, error) {

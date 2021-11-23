@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/aws/aws-cdk-go/awscdk"
+	"github.com/aws/aws-cdk-go/awscdk/awsapigateway"
 	"github.com/aws/aws-cdk-go/awscdk/awsdynamodb"
 	"github.com/aws/aws-cdk-go/awscdk/awslambda"
 	"github.com/aws/aws-cdk-go/awscdk/awslambdago"
@@ -31,6 +32,9 @@ func NewWorkspaceCdkStack(scope constructs.Construct, id string, props *Workspac
 	weaponTable := addedDynamoDBWeaponTable(stack)
 	weaponTable.GrantFullAccess(scraper)
 	weaponTable.GrantFullAccess(weaponReader)
+	weaponReaderAPI := addedWeaponReaderAPI(stack, weaponReader)
+	weaponReaderAPI.Root().AddMethod(jsii.String("GET"), awsapigateway.NewLambdaIntegration(weaponReader, nil), nil)
+	// weaponReaderAPI.Root().AddMethod()
 	return stack
 }
 
@@ -71,6 +75,39 @@ func addedWeaponReader(stack awscdk.Stack) awslambdago.GoFunction {
 		Entry:        jsii.String("ffxiv-weapon-reader/main.go"),
 		FunctionName: jsii.String("ffxiv-weapon-reader"),
 		Timeout:      awscdk.Duration_Minutes(&timeout),
+	})
+}
+
+func newBoolPointer(v bool) *bool {
+	return &v
+}
+
+func addedWeaponReaderAPI(stack awscdk.Stack, lambda awslambda.IFunction) awsapigateway.RestApi {
+	return awsapigateway.NewLambdaRestApi(stack, jsii.String("ffxiv-weapon-reader-api"), &awsapigateway.LambdaRestApiProps{
+		CloudWatchRole: newBoolPointer(false),
+		// Deploy:                      new(bool),
+		// DeployOptions:               &awsapigateway.StageOptions{},
+		// DisableExecuteApiEndpoint:   new(bool),
+		// DomainName:                  &awsapigateway.DomainNameOptions{},
+		// EndpointExportName:          new(string),
+		// EndpointTypes:               &[]awsapigateway.EndpointType{},
+		// FailOnWarnings:              new(bool),
+		// Parameters:                  &map[string]*string{},
+		// Policy:                      nil,
+		// RestApiName:                 new(string),
+		// RetainDeployments:           new(bool),
+		// DefaultCorsPreflightOptions: &awsapigateway.CorsOptions{},
+		// DefaultIntegration:          nil,
+		// DefaultMethodOptions:        &awsapigateway.MethodOptions{},
+		// ApiKeySourceType:            "",
+		// BinaryMediaTypes:            &[]*string{},
+		// CloneFrom:                   nil,
+		// Description:                 new(string),
+		// EndpointConfiguration:       &awsapigateway.EndpointConfiguration{},
+		// MinimumCompressionSize:      new(float64),
+		Handler: lambda,
+		// Options:                     &awsapigateway.RestApiProps{},
+		// Proxy:                       new(bool),
 	})
 }
 
