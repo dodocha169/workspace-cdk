@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -152,9 +153,14 @@ type WeaponIDSet struct {
 	IDSet []string `json:"id_set"`
 }
 
-func HandleRequest(e interface{}) (*events.APIGatewayProxyResponse, error) {
-	fmt.Printf("(%%#v) %#v\n", e)
-	w, err := readWeapon("エクサークソードRE")
+func HandleRequest(e *events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
+	fmt.Println(e.Path)
+	encodeName := e.Path[1:]
+	decodeName, err := url.QueryUnescape(encodeName)
+	if err != nil {
+		return nil, err
+	}
+	w, err := readWeapon(decodeName)
 	bytes, err := json.Marshal(w)
 	if err != nil {
 		return nil, err
